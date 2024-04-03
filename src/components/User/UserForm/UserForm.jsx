@@ -1,10 +1,10 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../../../context/UserContext";
-import { addUserAction, closeModalAction, editUserAction } from "../../../actions/userAction";
 import { addUser, editUser } from "../../../services/userService";
+import { addUserAction, closeModalAction, editUserAction } from "../../../actions/userAction";
 
-export const UserModalNew = () => {
-  const { state, dispatch } = useContext(UserContext);
+export const UserForm = () => {
+  const {state, dispatch} = useContext(UserContext)
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -16,29 +16,7 @@ export const UserModalNew = () => {
     password: "",
   });
 
-  const handleCloseModal = () => {
-    dispatch(closeModalAction());
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try{
-      if (state.isAdding) {
-        const {data} = await addUser(formData)
-        dispatch(addUserAction(data))
-      } else if (state.isEditing) {
-        const {data} = await editUser(state.editingUser.id, formData)
-        dispatch(editUserAction({userId: state.editingUser.id, editedUser: data}))
-      }
-    }catch(error){
-      console.log(error)
-    }finally{
-      dispatch(closeModalAction());
-    }
-  };
-
   useEffect(() => {
-    // If isEditing is true and user data is available, prefill the form fields
     if (state.isEditing && state.editingUser) {
       const {
         full_name,
@@ -57,10 +35,9 @@ export const UserModalNew = () => {
         phone_number,
         country,
         dob,
-        password, // Assuming password is not editable in the form
+        password,
       });
     } else {
-      // Reset form data if not editing
       setFormData({
         full_name: "",
         email: "",
@@ -73,22 +50,25 @@ export const UserModalNew = () => {
     }
   }, [state.isEditing, state.editingUser]);
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try{
+      if (state.isAdding) {
+        const {data} = await addUser(formData)
+        dispatch(addUserAction(data))
+      } else if (state.isEditing) {
+        const {data} = await editUser(state.editingUser.id, formData)
+        dispatch(editUserAction({userId: state.editingUser.id, editedUser: data}))
+      }
+    }catch(error){
+      console.log(error)
+    }finally{
+      dispatch(closeModalAction());
+    }
+  };
+
   return (
-    <div className="modal-bg">
-      <div className="modal-content">
-        <div>
-          <div className="d-flex justify-content-between">
-            <h1 className=" fs-5" >
-              {state.isAdding ? "Adding" : "Editing"} User
-            </h1>
-            <button
-              onClick={handleCloseModal}
-              type="button"
-              className="btn-close"
-            ></button>
-          </div>
-          <hr />
-          <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="fullName" className="form-label">
                 Full Name
@@ -194,8 +174,5 @@ export const UserModalNew = () => {
               {state.isAdding ? "Add User" : "Save Changes"}
             </button>
           </form>
-        </div>
-      </div>
-    </div>
-  );
-};
+  )
+}
